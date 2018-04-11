@@ -15,16 +15,6 @@
 #include "usart.h"
 #include <stdlib.h>
 
-
-#define USART1_GPIO_PORT			GPIOA
-#define USART1_TX_PIN				GPIO_Pin_9
-#define USART1_RX_PIN				GPIO_Pin_10
-#define USART1_GPIO_CLK				RCC_AHBPeriph_GPIOA
-
-#define USART1_AF					GPIO_AF_1
-#define USART1_TX_SOURCE			GPIO_PinSource9
-#define USART1_RX_SOURCE			GPIO_PinSource10
-
 #define MAX_BITS 26                 // max number of bits
 
 void printBits(unsigned int facilityCode, unsigned int cardCode){
