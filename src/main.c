@@ -41,7 +41,6 @@ void printBits(unsigned int facilityCode, unsigned int cardCode){
 
 }
 int main(void){
-	GPIO_InitTypeDef GPIO_Configure;
 	GPIO_InitTypeDef GPIO_Configure_In;
 	GPIO_InitTypeDef GPIO_InitStruct;
 
