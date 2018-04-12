@@ -13,33 +13,17 @@
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_rcc.h"
 #include "usart.h"
+#include "printBits.h"
+#include "wiegand_interface.h"
 #include <stdlib.h>
 
 #define MAX_BITS 26                 // max number of bits
-
-void printBits(unsigned int facilityCode, unsigned int cardCode){
-
-	char facility_aux[30];
-	char card_aux[30];
-	sprintf(facility_aux, "%u", facilityCode);
-	sprintf(card_aux, "%u", cardCode);
-	USART1_PutString("Decimal: ");
-	USART1_PutString("FC = ");
-	USART1_PutString(facility_aux);
-	USART1_PutString(", CC = ");
-	USART1_PutString(card_aux);
-	USART1_PutString(" ");
+unsigned char databits[MAX_BITS];    // stores all of the data bits
+unsigned int bitCount = 0;              // number of bits currently captured
+unsigned int facilityCode = 0;        // decoded facility code
+unsigned int cardCode = 0;            // decoded card code
 
 
-	sprintf(facility_aux, "%x", facilityCode);
-	sprintf(card_aux, "%x", cardCode);
-	USART1_PutString("Hexadecimal: ");
-	USART1_PutString("FC = ");
-	USART1_PutString(facility_aux);
-	USART1_PutString(", CC = ");
-	USART1_PutString(card_aux);
-
-}
 int main(void){
 	GPIO_InitTypeDef GPIO_Configure_In;
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -68,52 +52,20 @@ int main(void){
 	GPIO_Configure_In.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_Configure_In);
 
-	unsigned char databits[MAX_BITS];    // stores all of the data bits
-	unsigned int bitCount = 0;              // number of bits currently captured
-	unsigned int facilityCode = 0;        // decoded facility code
-	unsigned int cardCode = 0;            // decoded card code
-
 	int i;
 	USART1_DeInit();
 	USART1_PutString("Read RFID\n");
 
-	for (i=0; i<MAX_BITS; i++){
-		databits[i] = 0;
-	}
+	clear_vars();
+
 	while(1){
-		if((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == 0)){
-			bitCount++;
-			while((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == 0));
-			//USART1_PutString("0");
-		}if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == 0){
-			//USART1_PutString("1");
-			databits[bitCount] = 1;
-			bitCount++;
-			while((GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == 0));
-		}if(bitCount == 26){
-
-			// facility code = bits 2 to 9
-			for (i=1; i<9; i++){
-				facilityCode <<=1;
-				facilityCode |= databits[i];
-			}
-
-			// card code = bits 10 to 23
-			for (i=9; i<25; i++){
-				cardCode <<=1;
-				cardCode |= databits[i];
-			}
-
-
+		wiengand();
+		if(bitCount == 26){
 			printBits(facilityCode, cardCode);
 			USART1_PutString("\n");
 			// cleanup and get ready for the next card
-			bitCount = 0;
-			facilityCode = 0;
-			cardCode = 0;
-			for (i=0; i<MAX_BITS; i++){
-				databits[i] = 0;
-			}
+			clear_vars();
 		}
 	}
 }
+
